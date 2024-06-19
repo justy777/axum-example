@@ -1,0 +1,1 @@
+INSERT INTO tags (label) VALUES ("star"), ("favorite");
