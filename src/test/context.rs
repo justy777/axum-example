@@ -4,7 +4,7 @@ use rand::Rng;
 
 use crate::{establish_pool, run_migrations, Pool, MIGRATIONS};
 
-const TEST_MIGRATIONS: EmbeddedMigrations = embed_migrations!("migrations/.test/");
+const TEST_MIGRATIONS: EmbeddedMigrations = embed_migrations!("migrations/test/");
 
 pub struct TestContext {
     database_path: String,
@@ -34,6 +34,6 @@ impl TestContext {
 
 impl Drop for TestContext {
     fn drop(&mut self) {
-        std::fs::remove_file(&self.database_path).expect("Unable to delete .test database");
+        std::fs::remove_file(&self.database_path).expect("Unable to delete test database");
     }
 }

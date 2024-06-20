@@ -18,7 +18,7 @@ mod test;
 
 type Pool = diesel::r2d2::Pool<diesel::r2d2::ConnectionManager<diesel::SqliteConnection>>;
 
-const MIGRATIONS: EmbeddedMigrations = embed_migrations!("migrations/");
+const MIGRATIONS: EmbeddedMigrations = embed_migrations!("migrations/sqlite/");
 
 #[tokio::main]
 async fn main() {
