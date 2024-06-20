@@ -1,33 +1,33 @@
+use axum::{
+    extract::{Path, State},
+    http::StatusCode,
+    response::IntoResponse,
+    Json,
+};
+use diesel::{OptionalExtension, RunQueryDsl};
+
 use crate::{
     error::Result,
     models::{NewTag, Tag},
     Pool,
 };
-use axum::extract::{Path, State};
-use axum::http::StatusCode;
-use axum::response::IntoResponse;
-use axum::Json;
-use diesel::RunQueryDsl;
 
 pub async fn list_tags(State(pool): State<Pool>) -> Result<Json<Vec<Tag>>> {
     let mut conn = pool.get()?;
 
-    let payload = Tag::all().load(&mut conn).expect("Unable to load tags");
+    let payload = Tag::all().load(&mut conn)?;
     Ok(Json(payload))
 }
 
 pub async fn get_tag(Path(id): Path<i32>, State(pool): State<Pool>) -> Result<impl IntoResponse> {
     let mut conn = pool.get()?;
 
-    let query_result = Tag::by_id(id).get_result(&mut conn);
+    let tag_option = Tag::by_id(id).get_result(&mut conn).optional()?;
 
-    if matches!(query_result, Err(diesel::NotFound)) {
-        return Ok(StatusCode::NOT_FOUND.into_response());
+    match tag_option {
+        Some(tag) => Ok(Json(tag).into_response()),
+        None => Ok(StatusCode::NOT_FOUND.into_response()),
     }
-
-    let tag = query_result?;
-
-    Ok(Json(tag).into_response())
 }
 
 pub async fn create_tag(
@@ -36,7 +36,10 @@ pub async fn create_tag(
 ) -> Result<impl IntoResponse> {
     let mut conn = pool.get()?;
 
-    let tag_exists = Tag::by_label(&new_tag.label).first(&mut conn).is_ok();
+    let tag_exists = Tag::by_label(&new_tag.label)
+        .first(&mut conn)
+        .optional()?
+        .is_some();
 
     if tag_exists {
         return Ok(StatusCode::CONFLICT.into_response());

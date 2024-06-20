@@ -1,11 +1,11 @@
-mod context;
-
 use axum::http::{header::CONTENT_TYPE, StatusCode};
 use axum_test_helper::TestClient;
 use serde_json::{json, Value};
 
 use self::context::TestContext;
 use crate::build_router;
+
+mod context;
 
 #[tokio::test]
 async fn fallback_not_found() {

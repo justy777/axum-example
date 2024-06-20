@@ -6,6 +6,7 @@ use crate::{establish_pool, run_migrations, Pool, MIGRATIONS};
 
 const TEST_MIGRATIONS: EmbeddedMigrations = embed_migrations!("migrations/test/");
 
+#[derive(Debug)]
 pub struct TestContext {
     database_path: String,
 }

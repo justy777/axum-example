@@ -1,9 +1,9 @@
+use std::env;
+
 use axum::{routing::get, Router};
-use diesel::r2d2::ConnectionManager;
-use diesel::{Connection, SqliteConnection};
+use diesel::{r2d2::ConnectionManager, Connection, SqliteConnection};
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 use dotenvy::dotenv;
-use std::env;
 
 use crate::handlers::{create_tag, delete_tag, get_tag, list_tags};
 
