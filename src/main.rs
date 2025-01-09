@@ -1,12 +1,11 @@
-use std::env;
-
+use crate::config::Config;
+use crate::handlers::{create_tag, delete_tag, get_tag, list_tags};
+use anyhow::Context;
 use axum::{routing::get, Router};
 use diesel::{r2d2::ConnectionManager, Connection, SqliteConnection};
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
-use dotenvy::dotenv;
 
-use crate::handlers::{create_tag, delete_tag, get_tag, list_tags};
-
+mod config;
 mod error;
 mod handlers;
 mod helper_types;
@@ -21,16 +20,20 @@ type Pool = diesel::r2d2::Pool<diesel::r2d2::ConnectionManager<diesel::SqliteCon
 const MIGRATIONS: EmbeddedMigrations = embed_migrations!("migrations/sqlite/");
 
 #[tokio::main]
-async fn main() {
-    dotenv().ok();
+async fn main() -> anyhow::Result<()> {
+    let config = Config::from_env()?;
 
-    let database_path = env::var("DATABASE_PATH").expect("DATABASE_PATH must be set");
-    initialize_database(&database_path);
-    let pool = establish_pool(&database_path);
+    initialize_database(&config.database_url());
+    let pool = establish_pool(&config.database_url());
     let app = build_router(pool);
 
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
-    axum::serve(listener, app).await.unwrap();
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000")
+        .await
+        .with_context(|| format!("Failed to bind to port {}", config.server_port()))?;
+    axum::serve(listener, app)
+        .await
+        .context("Received error from running server")?;
+    Ok(())
 }
 
 fn initialize_database(database_path: &str) {
