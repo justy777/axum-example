@@ -1,17 +1,16 @@
 use axum::http::{header::CONTENT_TYPE, StatusCode};
 use axum_test_helper::TestClient;
 use serde_json::{json, Value};
-
+use crate::http::api_routes;
 use self::context::TestContext;
-use crate::build_router;
 
 mod context;
 
 #[tokio::test]
 async fn fallback_not_found() {
     let ctx = TestContext::new();
-    let app = build_router(ctx.pool().await);
-    let client = TestClient::new(app);
+    let router = api_routes().with_state(ctx.pool().await);
+    let client = TestClient::new(router);
 
     let response = client.get("/does-not-exist").await;
     assert_eq!(response.status(), StatusCode::NOT_FOUND);
@@ -20,8 +19,8 @@ async fn fallback_not_found() {
 #[tokio::test]
 async fn get_tags_ok() {
     let ctx = TestContext::new();
-    let app = build_router(ctx.pool().await);
-    let client = TestClient::new(app);
+    let router = api_routes().with_state(ctx.pool().await);
+    let client = TestClient::new(router);
 
     let response = client.get("/api/v1/tags").await;
     assert_eq!(response.status(), StatusCode::OK);
@@ -35,8 +34,8 @@ async fn get_tags_ok() {
 #[tokio::test]
 async fn get_tag_ok() {
     let ctx = TestContext::new();
-    let app = build_router(ctx.pool().await);
-    let client = TestClient::new(app);
+    let router = api_routes().with_state(ctx.pool().await);
+    let client = TestClient::new(router);
 
     let response = client.get("/api/v1/tags/1").await;
     assert_eq!(response.status(), StatusCode::OK);
@@ -49,8 +48,8 @@ async fn get_tag_ok() {
 #[tokio::test]
 async fn get_tag_not_found_id() {
     let ctx = TestContext::new();
-    let app = build_router(ctx.pool().await);
-    let client = TestClient::new(app);
+    let router = api_routes().with_state(ctx.pool().await);
+    let client = TestClient::new(router);
 
     let response = client.get("/api/v1/tags/3").await;
     assert_eq!(response.status(), StatusCode::NOT_FOUND);
@@ -59,8 +58,8 @@ async fn get_tag_not_found_id() {
 #[tokio::test]
 async fn get_tag_malformed_id() {
     let ctx = TestContext::new();
-    let app = build_router(ctx.pool().await);
-    let client = TestClient::new(app);
+    let router = api_routes().with_state(ctx.pool().await);
+    let client = TestClient::new(router);
 
     let response = client.get("/api/v1/tags/x").await;
     assert_eq!(response.status(), StatusCode::BAD_REQUEST);
@@ -69,8 +68,8 @@ async fn get_tag_malformed_id() {
 #[tokio::test]
 async fn create_tag_ok() {
     let ctx = TestContext::new();
-    let app = build_router(ctx.pool().await);
-    let client = TestClient::new(app);
+    let router = api_routes().with_state(ctx.pool().await);
+    let client = TestClient::new(router);
 
     let create_tag = json!({"label": "popular"});
 
@@ -85,8 +84,8 @@ async fn create_tag_ok() {
 #[tokio::test]
 async fn create_tag_already_exists() {
     let ctx = TestContext::new();
-    let app = build_router(ctx.pool().await);
-    let client = TestClient::new(app);
+    let router = api_routes().with_state(ctx.pool().await);
+    let client = TestClient::new(router);
 
     let create_tag = json!({"label": "star"});
 
@@ -97,8 +96,8 @@ async fn create_tag_already_exists() {
 #[tokio::test]
 async fn create_tag_missing_content_type() {
     let ctx = TestContext::new();
-    let app = build_router(ctx.pool().await);
-    let client = TestClient::new(app);
+    let router = api_routes().with_state(ctx.pool().await);
+    let client = TestClient::new(router);
 
     let response = client.post("/api/v1/tags").body("").await;
     assert_eq!(response.status(), StatusCode::UNSUPPORTED_MEDIA_TYPE);
@@ -107,8 +106,8 @@ async fn create_tag_missing_content_type() {
 #[tokio::test]
 async fn create_tag_empty_body() {
     let ctx = TestContext::new();
-    let app = build_router(ctx.pool().await);
-    let client = TestClient::new(app);
+    let router = api_routes().with_state(ctx.pool().await);
+    let client = TestClient::new(router);
 
     let create_movie = json!({});
 
@@ -119,8 +118,8 @@ async fn create_tag_empty_body() {
 #[tokio::test]
 async fn create_tag_invalid_syntax() {
     let ctx = TestContext::new();
-    let app = build_router(ctx.pool().await);
-    let client = TestClient::new(app);
+    let router = api_routes().with_state(ctx.pool().await);
+    let client = TestClient::new(router);
 
     let response = client
         .post("/api/v1/tags")
@@ -133,8 +132,8 @@ async fn create_tag_invalid_syntax() {
 #[tokio::test]
 async fn create_tag_invalid_field_type() {
     let ctx = TestContext::new();
-    let app = build_router(ctx.pool().await);
-    let client = TestClient::new(app);
+    let router = api_routes().with_state(ctx.pool().await);
+    let client = TestClient::new(router);
 
     let create_tag = json!({"label": 5});
 
@@ -145,8 +144,8 @@ async fn create_tag_invalid_field_type() {
 #[tokio::test]
 async fn create_tag_missing_required_field() {
     let ctx = TestContext::new();
-    let app = build_router(ctx.pool().await);
-    let client = TestClient::new(app);
+    let router = api_routes().with_state(ctx.pool().await);
+    let client = TestClient::new(router);
 
     let create_movie = json!({
         "originally_available_at": "2022-03-18",
@@ -159,8 +158,8 @@ async fn create_tag_missing_required_field() {
 #[tokio::test]
 async fn delete_tag_ok() {
     let ctx = TestContext::new();
-    let app = build_router(ctx.pool().await);
-    let client = TestClient::new(app);
+    let router = api_routes().with_state(ctx.pool().await);
+    let client = TestClient::new(router);
 
     let response = client.get("/api/v1/tags/1").await;
     assert_eq!(response.status(), StatusCode::OK);
@@ -175,8 +174,8 @@ async fn delete_tag_ok() {
 #[tokio::test]
 async fn delete_tag_not_found_id() {
     let ctx = TestContext::new();
-    let app = build_router(ctx.pool().await);
-    let client = TestClient::new(app);
+    let router = api_routes().with_state(ctx.pool().await);
+    let client = TestClient::new(router);
 
     let response = client.delete("/api/v1/tags/3").await;
     assert_eq!(response.status(), StatusCode::NOT_FOUND);
@@ -185,8 +184,8 @@ async fn delete_tag_not_found_id() {
 #[tokio::test]
 async fn delete_movie_malformed_id() {
     let ctx = TestContext::new();
-    let app = build_router(ctx.pool().await);
-    let client = TestClient::new(app);
+    let router = api_routes().with_state(ctx.pool().await);
+    let client = TestClient::new(router);
 
     let response = client.delete("/api/v1/tags/x").await;
     assert_eq!(response.status(), StatusCode::BAD_REQUEST);
