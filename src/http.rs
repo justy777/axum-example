@@ -1,7 +1,7 @@
 mod handler;
 
 use crate::http::handler::{create_tag, delete_tag, get_tag, list_tags};
-use crate::Pool;
+use crate::sqlite::Sqlite;
 use anyhow::Context;
 use axum::routing::get;
 use axum::Router;
@@ -24,8 +24,10 @@ pub struct HttpServer {
 }
 
 impl HttpServer {
-    pub async fn new(pool: Pool, config: HttpServerConfig) -> anyhow::Result<Self> {
-        let router = Router::new().nest("/api/v1", api_routes()).with_state(pool);
+    pub async fn new(database: Sqlite, config: HttpServerConfig) -> anyhow::Result<Self> {
+        let router = Router::new()
+            .nest("/api/v1", api_routes())
+            .with_state(database);
 
         let listener = TcpListener::bind(format!("0.0.0.0:{}", config.port))
             .await
@@ -42,7 +44,7 @@ impl HttpServer {
     }
 }
 
-pub fn api_routes() -> Router<Pool> {
+pub fn api_routes() -> Router<Sqlite> {
     Router::new()
         .route("/tags", get(list_tags).post(create_tag))
         .route("/tags/:id", get(get_tag).delete(delete_tag))

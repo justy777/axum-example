@@ -1,14 +1,13 @@
-use diesel::{Connection, SqliteConnection};
-use diesel_migrations::{embed_migrations, EmbeddedMigrations};
+use crate::sqlite::Sqlite;
+use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 use rand::Rng;
-
-use crate::{establish_pool, run_migrations, Pool, MIGRATIONS};
 
 const TEST_MIGRATIONS: EmbeddedMigrations = embed_migrations!("migrations/test/");
 
 #[derive(Debug)]
 pub struct TestContext {
     database_path: String,
+    database: Sqlite,
 }
 
 impl TestContext {
@@ -17,24 +16,26 @@ impl TestContext {
         let number: u32 = rng.gen();
 
         let database_path = format!(".__diesel_test_{number}.db");
-
-        let mut connection =
-            SqliteConnection::establish(&database_path).expect("Could not connect to database");
-        run_migrations(&mut connection, MIGRATIONS);
-        run_migrations(&mut connection, TEST_MIGRATIONS);
+        let database = Sqlite::new(&database_path).expect("Failed to create SQLite database");
+        database
+            .connection()
+            .unwrap()
+            .run_pending_migrations(TEST_MIGRATIONS)
+            .expect("Failed to run migrations on database");
 
         Self {
-            database_path: String::from(database_path),
+            database_path,
+            database,
         }
     }
 
-    pub async fn pool(&self) -> Pool {
-        establish_pool(&self.database_path)
+    pub const fn database(&self) -> &Sqlite {
+        &self.database
     }
 }
 
 impl Drop for TestContext {
     fn drop(&mut self) {
-        std::fs::remove_file(&self.database_path).expect("Unable to delete test database");
+        std::fs::remove_file(&self.database_path).expect("Failed to delete test database");
     }
 }

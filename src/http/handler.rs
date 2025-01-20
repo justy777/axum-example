@@ -6,21 +6,24 @@ use axum::{
 };
 use diesel::{OptionalExtension, RunQueryDsl};
 
+use crate::sqlite::Sqlite;
 use crate::{
     error::Result,
     models::{NewTag, Tag},
-    Pool,
 };
 
-pub async fn list_tags(State(pool): State<Pool>) -> Result<Json<Vec<Tag>>> {
-    let mut conn = pool.get()?;
+pub async fn list_tags(State(database): State<Sqlite>) -> Result<Json<Vec<Tag>>> {
+    let mut conn = database.connection()?;
 
     let payload = Tag::all().load(&mut conn)?;
     Ok(Json(payload))
 }
 
-pub async fn get_tag(Path(id): Path<i32>, State(pool): State<Pool>) -> Result<impl IntoResponse> {
-    let mut conn = pool.get()?;
+pub async fn get_tag(
+    Path(id): Path<i32>,
+    State(database): State<Sqlite>,
+) -> Result<impl IntoResponse> {
+    let mut conn = database.connection()?;
 
     let tag_option = Tag::by_id(id).get_result(&mut conn).optional()?;
 
@@ -31,10 +34,10 @@ pub async fn get_tag(Path(id): Path<i32>, State(pool): State<Pool>) -> Result<im
 }
 
 pub async fn create_tag(
-    State(pool): State<Pool>,
+    State(database): State<Sqlite>,
     Json(new_tag): Json<NewTag>,
 ) -> Result<impl IntoResponse> {
-    let mut conn = pool.get()?;
+    let mut conn = database.connection()?;
 
     let tag_exists = Tag::by_label(&new_tag.label)
         .first(&mut conn)
@@ -49,8 +52,8 @@ pub async fn create_tag(
     Ok((StatusCode::CREATED, Json(tag)).into_response())
 }
 
-pub async fn delete_tag(Path(id): Path<i32>, State(pool): State<Pool>) -> Result<StatusCode> {
-    let mut conn = pool.get()?;
+pub async fn delete_tag(Path(id): Path<i32>, State(database): State<Sqlite>) -> Result<StatusCode> {
+    let mut conn = database.connection()?;
 
     let rows_affected = Tag::delete_by_id(id).execute(&mut conn)?;
 
