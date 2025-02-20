@@ -1,7 +1,7 @@
 use anyhow::Context;
-use diesel::r2d2::ConnectionManager;
 use diesel::SqliteConnection;
-use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
+use diesel::r2d2::ConnectionManager;
+use diesel_migrations::{EmbeddedMigrations, MigrationHarness, embed_migrations};
 
 type Pool = diesel::r2d2::Pool<diesel::r2d2::ConnectionManager<diesel::SqliteConnection>>;
 type Connection = diesel::r2d2::PooledConnection<diesel::r2d2::ConnectionManager<SqliteConnection>>;

@@ -1,5 +1,5 @@
 use crate::sqlite::Sqlite;
-use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
+use diesel_migrations::{EmbeddedMigrations, MigrationHarness, embed_migrations};
 use rand::Rng;
 
 const TEST_MIGRATIONS: EmbeddedMigrations = embed_migrations!("migrations/test/");
@@ -12,8 +12,8 @@ pub struct TestContext {
 
 impl TestContext {
     pub fn new() -> Self {
-        let mut rng = rand::thread_rng();
-        let number: u32 = rng.gen();
+        let mut rng = rand::rng();
+        let number: u32 = rng.random();
 
         let database_path = format!(".__diesel_test_{number}.db");
         let database = Sqlite::new(&database_path).expect("Failed to create SQLite database");

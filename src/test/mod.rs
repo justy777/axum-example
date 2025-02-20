@@ -1,8 +1,8 @@
 use self::context::TestContext;
 use crate::http::api_routes;
-use axum::http::{header::CONTENT_TYPE, StatusCode};
+use axum::http::{StatusCode, header::CONTENT_TYPE};
 use axum_test_helper::TestClient;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 mod context;
 

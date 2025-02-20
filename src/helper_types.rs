@@ -1,7 +1,7 @@
 use diesel::{
+    Insertable,
     associations::HasTable,
     query_builder::{DeleteStatement, InsertStatement, IntoUpdateTarget},
-    Insertable,
 };
 
 /// Represents the return type of [`diesel::insert_into().values()`](diesel::insert_into)

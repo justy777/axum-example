@@ -3,8 +3,8 @@ mod handler;
 use crate::http::handler::{create_tag, delete_tag, get_tag, list_tags};
 use crate::sqlite::Sqlite;
 use anyhow::Context;
-use axum::routing::get;
 use axum::Router;
+use axum::routing::get;
 use tokio::net::TcpListener;
 
 #[derive(Debug)]
@@ -47,5 +47,5 @@ impl HttpServer {
 pub fn api_routes() -> Router<Sqlite> {
     Router::new()
         .route("/tags", get(list_tags).post(create_tag))
-        .route("/tags/:id", get(get_tag).delete(delete_tag))
+        .route("/tags/{id}", get(get_tag).delete(delete_tag))
 }
