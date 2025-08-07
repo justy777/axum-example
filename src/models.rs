@@ -27,11 +27,11 @@ impl Tag {
         Self::all().find(id)
     }
 
-    pub fn with_label(label: &str) -> WithLabel {
+    pub fn with_label(label: &str) -> WithLabel<'_> {
         tags::label.eq(label)
     }
 
-    pub fn by_label(label: &str) -> ByLabel {
+    pub fn by_label(label: &str) -> ByLabel<'_> {
         Self::all().filter(Self::with_label(label))
     }
 
